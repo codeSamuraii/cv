@@ -4,54 +4,353 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Remi Heneault - CV</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
-        body, html {
+        * {
             margin: 0;
             padding: 0;
-            height: 100%;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
+            box-sizing: border-box;
         }
-        .pdf-container {
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #1a1a1a;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #pdf-container {
+            position: relative;
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            scroll-behavior: smooth;
+        }
+
+        .page-wrapper {
+            position: relative;
+            width: 100vw;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            scroll-snap-align: start;
         }
-        iframe {
+
+        .pdf-page {
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            background: white;
+            transition: transform 0.3s ease;
+        }
+
+        .pdf-page canvas {
+            display: block;
             width: 100%;
             height: 100%;
-            border: none;
         }
-        .fallback {
-            display: none;
+
+        .link-overlay {
+            position: absolute;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .link-overlay:hover {
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+
+        .info-window {
+            position: fixed;
+            background: #2d2d2d;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 300px;
+            border: 1px solid #3d3d3d;
+        }
+
+        .info-window.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .info-window h3 {
+            margin-bottom: 10px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .info-window p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #b0b0b0;
+        }
+
+        .info-window::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid #3d3d3d;
+        }
+
+        .info-window::after {
+            content: '';
+            position: absolute;
+            top: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid #2d2d2d;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #666;
+            font-size: 18px;
+        }
+
+        .error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
-            padding: 50px;
+            color: #666;
         }
-        .fallback h1 {
-            color: #333;
+
+        .error-message h1 {
+            margin-bottom: 20px;
+            color: #999;
         }
-        .fallback a {
+
+        .error-message a {
             display: inline-block;
             margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
+            padding: 12px 24px;
+            background-color: #4a4a4a;
             color: white;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
         }
-        .fallback a:hover {
-            background-color: #0056b3;
+
+        .error-message a:hover {
+            background-color: #5a5a5a;
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        @media (max-width: 768px) {
+            .info-window {
+                max-width: 250px;
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="pdf-container">
-        <iframe src="CV_Remi_Heneault.pdf" type="application/pdf">
-            <div class="fallback" style="display: block;">
-                <h1>Remi Heneault - CV</h1>
-                <p>Your browser doesn't support PDF viewing.</p>
-                <a href="CV_Remi_Heneault.pdf" download>Download CV (PDF)</a>
-            </div>
-        </iframe>
+    <div id="loading" class="loading">Loading CV...</div>
+    <div id="pdf-container"></div>
+    <div id="error" class="error-message" style="display: none;">
+        <h1>Unable to load CV</h1>
+        <p>Your browser might not support the PDF viewer.</p>
+        <a href="CV_Remi_Heneault.pdf" download>Download CV (PDF)</a>
     </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const projectInfo = {
+            'github.com': {
+                title: 'GitHub Projects',
+                description: 'Explore my open-source contributions and personal projects on GitHub.'
+            },
+            'linkedin.com': {
+                title: 'LinkedIn Profile',
+                description: 'Connect with me professionally and view my complete work history.'
+            },
+            'default': {
+                title: 'External Link',
+                description: 'Click to visit this external resource.'
+            }
+        };
+
+        let infoWindow = null;
+        let currentHoveredLink = null;
+
+        async function loadPDF() {
+            try {
+                const loadingTask = pdfjsLib.getDocument('CV_Remi_Heneault.pdf');
+                const pdf = await loadingTask.promise;
+                
+                document.getElementById('loading').style.display = 'none';
+                
+                const container = document.getElementById('pdf-container');
+                
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    
+                    const pageWrapper = document.createElement('div');
+                    pageWrapper.className = 'page-wrapper';
+                    
+                    const pageContainer = document.createElement('div');
+                    pageContainer.className = 'pdf-page';
+                    pageContainer.id = `page-${pageNum}`;
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    
+                    const viewport = page.getViewport({ scale: 1 });
+                    const viewportHeight = window.innerHeight * 0.9;
+                    const scale = viewportHeight / viewport.height;
+                    const scaledViewport = page.getViewport({ scale: scale });
+                    
+                    canvas.width = scaledViewport.width;
+                    canvas.height = scaledViewport.height;
+                    
+                    pageContainer.style.width = `${scaledViewport.width}px`;
+                    pageContainer.style.height = `${scaledViewport.height}px`;
+                    
+                    await page.render({
+                        canvasContext: context,
+                        viewport: scaledViewport
+                    }).promise;
+                    
+                    pageContainer.appendChild(canvas);
+                    
+                    const annotations = await page.getAnnotations();
+                    annotations.forEach(annotation => {
+                        if (annotation.subtype === 'Link' && annotation.url) {
+                            const rect = annotation.rect;
+                            const linkOverlay = document.createElement('div');
+                            linkOverlay.className = 'link-overlay';
+                            
+                            const [x1, y1, x2, y2] = rect;
+                            const width = (x2 - x1) * scale;
+                            const height = (y2 - y1) * scale;
+                            const left = x1 * scale;
+                            const bottom = y1 * scale;
+                            
+                            linkOverlay.style.position = 'absolute';
+                            linkOverlay.style.left = `${left}px`;
+                            linkOverlay.style.bottom = `${bottom}px`;
+                            linkOverlay.style.width = `${width}px`;
+                            linkOverlay.style.height = `${height}px`;
+                            
+                            linkOverlay.addEventListener('click', () => {
+                                window.open(annotation.url, '_blank');
+                            });
+                            
+                            linkOverlay.addEventListener('mouseenter', (e) => {
+                                showInfoWindow(e, annotation.url);
+                            });
+                            
+                            linkOverlay.addEventListener('mouseleave', () => {
+                                hideInfoWindow();
+                            });
+                            
+                            pageContainer.appendChild(linkOverlay);
+                        }
+                    });
+                    
+                    pageWrapper.appendChild(pageContainer);
+                    container.appendChild(pageWrapper);
+                }
+                
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        function showInfoWindow(event, url) {
+            if (!infoWindow) {
+                infoWindow = document.createElement('div');
+                infoWindow.className = 'info-window';
+                document.body.appendChild(infoWindow);
+            }
+            
+            currentHoveredLink = event.target;
+            
+            let info = projectInfo.default;
+            for (const domain in projectInfo) {
+                if (url.includes(domain)) {
+                    info = projectInfo[domain];
+                    break;
+                }
+            }
+            
+            infoWindow.innerHTML = `
+                <h3>${info.title}</h3>
+                <p>${info.description}</p>
+            `;
+            
+            const rect = event.target.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            let left = rect.left + rect.width / 2;
+            let top = rect.bottom + 10;
+            
+            infoWindow.style.left = `${left}px`;
+            infoWindow.style.top = `${top}px`;
+            infoWindow.style.transform = 'translateX(-50%)';
+            
+            setTimeout(() => {
+                const infoRect = infoWindow.getBoundingClientRect();
+                
+                if (infoRect.right > windowWidth - 10) {
+                    left = windowWidth - infoRect.width / 2 - 10;
+                    infoWindow.style.left = `${left}px`;
+                } else if (infoRect.left < 10) {
+                    left = infoRect.width / 2 + 10;
+                    infoWindow.style.left = `${left}px`;
+                }
+                
+                if (infoRect.bottom > windowHeight - 10) {
+                    top = rect.top - infoRect.height - 10;
+                    infoWindow.style.top = `${top}px`;
+                }
+            }, 0);
+            
+            setTimeout(() => {
+                infoWindow.classList.add('show');
+            }, 10);
+        }
+
+        function hideInfoWindow() {
+            if (infoWindow) {
+                infoWindow.classList.remove('show');
+                currentHoveredLink = null;
+            }
+        }
+
+        loadPDF();
+    </script>
 </body>
 </html>
