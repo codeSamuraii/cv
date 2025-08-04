@@ -14,7 +14,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #1a1a1a;
+            background-color: #f5f5f5;
             overflow-x: hidden;
             position: relative;
         }
@@ -26,11 +26,12 @@
             flex-direction: column;
             align-items: center;
             scroll-behavior: smooth;
+            padding-left: 350px;
         }
 
         .page-wrapper {
             position: relative;
-            width: 100vw;
+            width: calc(100vw - 350px);
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -40,7 +41,7 @@
 
         .pdf-page {
             position: relative;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             background: white;
             transition: transform 0.3s ease;
         }
@@ -61,64 +62,94 @@
             background-color: rgba(66, 133, 244, 0.1);
         }
 
-        .info-window {
+        .sidebar {
             position: fixed;
-            background: #2d2d2d;
-            color: #e0e0e0;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none;
-            z-index: 1000;
-            max-width: 300px;
-            border: 1px solid #3d3d3d;
+            left: 0;
+            top: 0;
+            width: 350px;
+            height: 100vh;
+            background: #ffffff;
+            border-right: 1px solid #e0e0e0;
+            padding: 40px 30px;
+            overflow-y: auto;
+            z-index: 100;
         }
 
-        .info-window.show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        .info-window h3 {
-            margin-bottom: 10px;
-            color: #ffffff;
-            font-size: 16px;
+        .sidebar h2 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #333;
             font-weight: 600;
         }
 
-        .info-window p {
+        .link-preview {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #e5e5e5;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .link-preview:hover {
+            background: #f0f4ff;
+            border-color: #4285f4;
+            transform: translateX(5px);
+        }
+
+        .link-preview.active {
+            background: #e8f0fe;
+            border-color: #1a73e8;
+        }
+
+        .link-preview h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .link-preview p {
             font-size: 14px;
+            color: #666;
             line-height: 1.5;
-            color: #b0b0b0;
         }
 
-        .info-window::before {
-            content: '';
-            position: absolute;
-            top: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 8px solid #3d3d3d;
+        /* Other/secondary link styles */
+        .link-preview.other {
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fcfcfc;
+            border-color: #efefef;
         }
 
-        .info-window::after {
-            content: '';
-            position: absolute;
-            top: -7px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 8px solid #2d2d2d;
+        .link-preview.other:hover {
+            background: #f5f8ff;
+            border-color: #8ab4f8;
+            transform: translateX(3px);
+        }
+
+        .link-preview.other.active {
+            background: #f0f4ff;
+            border-color: #4285f4;
+        }
+
+        .link-preview.other h3 {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .link-preview.other p {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .link-separator {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 30px 0;
+            width: 100%;
         }
 
         .loading {
@@ -164,15 +195,27 @@
             scroll-behavior: smooth;
         }
 
-        @media (max-width: 768px) {
-            .info-window {
-                max-width: 250px;
-                padding: 15px;
+        @media (max-width: 1024px) {
+            .sidebar {
+                display: none;
+            }
+            
+            #pdf-container {
+                padding-left: 0;
+            }
+            
+            .page-wrapper {
+                width: 100vw;
             }
         }
     </style>
 </head>
 <body>
+    <div class="sidebar">
+        <h2>Quick Links</h2>
+        <div id="link-previews"></div>
+    </div>
+    
     <div id="loading" class="loading">Loading CV...</div>
     <div id="pdf-container"></div>
     <div id="error" class="error-message" style="display: none;">
@@ -184,25 +227,97 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        const projectInfo = {
-            'github.com': {
-                title: 'GitHub Projects',
-                description: 'Explore my open-source contributions and personal projects on GitHub.'
-            },
-            'linkedin.com': {
-                title: 'LinkedIn Profile',
-                description: 'Connect with me professionally and view my complete work history.'
-            },
-            'default': {
-                title: 'External Link',
-                description: 'Click to visit this external resource.'
-            }
-        };
+        let linkInfo = {};
+        let linkElements = [];
+        let activePreview = null;
 
-        let infoWindow = null;
-        let currentHoveredLink = null;
+        async function loadLinkInfo() {
+            try {
+                const response = await fetch('links.json');
+                linkInfo = await response.json();
+            } catch (error) {
+                console.error('Error loading links.json:', error);
+                linkInfo = {};
+            }
+        }
+
+        function createLinkPreviews() {
+            const container = document.getElementById('link-previews');
+            container.innerHTML = '';
+            linkElements = [];
+            
+            // Separate links by style
+            const mainLinks = [];
+            const otherLinks = [];
+            
+            for (const [key, info] of Object.entries(linkInfo)) {
+                const linkData = { key, info };
+                if (info.style === 'main') {
+                    mainLinks.push(linkData);
+                } else {
+                    otherLinks.push(linkData);
+                }
+            }
+            
+            // Create main links
+            mainLinks.forEach(({ key, info }) => {
+                createLinkPreview(key, info, container, false);
+            });
+            
+            // Add separator if we have both types
+            if (mainLinks.length > 0 && otherLinks.length > 0) {
+                const separator = document.createElement('div');
+                separator.className = 'link-separator';
+                container.appendChild(separator);
+            }
+            
+            // Create other links
+            otherLinks.forEach(({ key, info }) => {
+                createLinkPreview(key, info, container, true);
+            });
+        }
+        
+        function createLinkPreview(key, info, container, isOther) {
+            const preview = document.createElement('div');
+            preview.className = isOther ? 'link-preview other' : 'link-preview';
+            preview.dataset.key = key;
+            
+            // Build the full URL
+            const url = key.startsWith('http') ? key : `https://${key}`;
+            preview.dataset.url = url;
+            
+            preview.innerHTML = `
+                <h3>${info.title}</h3>
+                <p>${info.description}</p>
+            `;
+            
+            preview.addEventListener('click', () => {
+                window.open(url, '_blank');
+            });
+            
+            preview.addEventListener('mouseenter', (e) => {
+                if (activePreview) {
+                    activePreview.classList.remove('active');
+                }
+                e.currentTarget.classList.add('active');
+                activePreview = e.currentTarget;
+            });
+            
+            preview.addEventListener('mouseleave', (e) => {
+                e.currentTarget.classList.remove('active');
+                if (activePreview === e.currentTarget) {
+                    activePreview = null;
+                }
+            });
+            
+            container.appendChild(preview);
+            linkElements.push(preview);
+        }
 
         async function loadPDF() {
+            await loadLinkInfo();
+            createLinkPreviews();
+            
             try {
                 const loadingTask = pdfjsLib.getDocument('CV_Remi_Heneault.pdf');
                 const pdf = await loadingTask.promise;
@@ -224,40 +339,57 @@
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     
-                    const viewport = page.getViewport({ scale: 1 });
+                    // Render at higher resolution for better quality
+                    const scale = 2.0;
+                    const viewport = page.getViewport({ scale });
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    
+                    // Calculate display size to fit in viewport
                     const viewportHeight = window.innerHeight * 0.9;
-                    const scale = viewportHeight / viewport.height;
-                    const scaledViewport = page.getViewport({ scale: scale });
+                    const displayHeight = viewportHeight;
+                    const displayWidth = (viewport.width / viewport.height) * displayHeight;
                     
-                    canvas.width = scaledViewport.width;
-                    canvas.height = scaledViewport.height;
+                    canvas.style.width = `${displayWidth}px`;
+                    canvas.style.height = `${displayHeight}px`;
                     
-                    pageContainer.style.width = `${scaledViewport.width}px`;
-                    pageContainer.style.height = `${scaledViewport.height}px`;
+                    pageContainer.style.width = `${displayWidth}px`;
+                    pageContainer.style.height = `${displayHeight}px`;
                     
                     await page.render({
                         canvasContext: context,
-                        viewport: scaledViewport
+                        viewport: viewport
                     }).promise;
                     
                     pageContainer.appendChild(canvas);
                     
                     const annotations = await page.getAnnotations();
+                    
                     annotations.forEach(annotation => {
                         if (annotation.subtype === 'Link' && annotation.url) {
                             const rect = annotation.rect;
                             const linkOverlay = document.createElement('div');
                             linkOverlay.className = 'link-overlay';
+                            linkOverlay.dataset.url = annotation.url;
                             
+                            // Calculate position with proper scaling
                             const [x1, y1, x2, y2] = rect;
-                            const width = (x2 - x1) * scale;
-                            const height = (y2 - y1) * scale;
-                            const left = x1 * scale;
-                            const bottom = y1 * scale;
+                            
+                            // Scale from PDF coordinates to display coordinates
+                            const scaleX = displayWidth / viewport.width;
+                            const scaleY = displayHeight / viewport.height;
+                            
+                            const left = x1 * scale * scaleX;
+                            const bottom = y1 * scale * scaleY;
+                            const width = (x2 - x1) * scale * scaleX;
+                            const height = (y2 - y1) * scale * scaleY;
+                            
+                            // Convert from bottom to top positioning
+                            const top = displayHeight - bottom - height;
                             
                             linkOverlay.style.position = 'absolute';
                             linkOverlay.style.left = `${left}px`;
-                            linkOverlay.style.bottom = `${bottom}px`;
+                            linkOverlay.style.top = `${top}px`;
                             linkOverlay.style.width = `${width}px`;
                             linkOverlay.style.height = `${height}px`;
                             
@@ -266,11 +398,29 @@
                             });
                             
                             linkOverlay.addEventListener('mouseenter', (e) => {
-                                showInfoWindow(e, annotation.url);
+                                const url = e.target.dataset.url;
+                                
+                                // Find matching preview in sidebar
+                                const preview = linkElements.find(el => {
+                                    const elUrl = el.dataset.url;
+                                    const elKey = el.dataset.key;
+                                    return url.includes(elKey) || elUrl === url;
+                                });
+                                
+                                if (preview) {
+                                    if (activePreview) {
+                                        activePreview.classList.remove('active');
+                                    }
+                                    preview.classList.add('active');
+                                    activePreview = preview;
+                                }
                             });
                             
                             linkOverlay.addEventListener('mouseleave', () => {
-                                hideInfoWindow();
+                                if (activePreview) {
+                                    activePreview.classList.remove('active');
+                                    activePreview = null;
+                                }
                             });
                             
                             pageContainer.appendChild(linkOverlay);
@@ -285,68 +435,6 @@
                 console.error('Error loading PDF:', error);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').style.display = 'block';
-            }
-        }
-
-        function showInfoWindow(event, url) {
-            if (!infoWindow) {
-                infoWindow = document.createElement('div');
-                infoWindow.className = 'info-window';
-                document.body.appendChild(infoWindow);
-            }
-            
-            currentHoveredLink = event.target;
-            
-            let info = projectInfo.default;
-            for (const domain in projectInfo) {
-                if (url.includes(domain)) {
-                    info = projectInfo[domain];
-                    break;
-                }
-            }
-            
-            infoWindow.innerHTML = `
-                <h3>${info.title}</h3>
-                <p>${info.description}</p>
-            `;
-            
-            const rect = event.target.getBoundingClientRect();
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            
-            let left = rect.left + rect.width / 2;
-            let top = rect.bottom + 10;
-            
-            infoWindow.style.left = `${left}px`;
-            infoWindow.style.top = `${top}px`;
-            infoWindow.style.transform = 'translateX(-50%)';
-            
-            setTimeout(() => {
-                const infoRect = infoWindow.getBoundingClientRect();
-                
-                if (infoRect.right > windowWidth - 10) {
-                    left = windowWidth - infoRect.width / 2 - 10;
-                    infoWindow.style.left = `${left}px`;
-                } else if (infoRect.left < 10) {
-                    left = infoRect.width / 2 + 10;
-                    infoWindow.style.left = `${left}px`;
-                }
-                
-                if (infoRect.bottom > windowHeight - 10) {
-                    top = rect.top - infoRect.height - 10;
-                    infoWindow.style.top = `${top}px`;
-                }
-            }, 0);
-            
-            setTimeout(() => {
-                infoWindow.classList.add('show');
-            }, 10);
-        }
-
-        function hideInfoWindow() {
-            if (infoWindow) {
-                infoWindow.classList.remove('show');
-                currentHoveredLink = null;
             }
         }
 
