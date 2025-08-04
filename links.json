@@ -1,17 +1,17 @@
 {
     "transit.sh": {
         "title": "Transit.sh",
-        "description": "A file transfer service I built.",
+        "description": "The file transfer service I built.",
         "style": "main"
     },
     "github.com/codeSamuraii": {
-        "title": "GitHub Projects",
-        "description": "My other open-source contributions and personal projects.",
+        "title": "GitHub",
+        "description": "My personal projects and other open-source contributions.",
         "style": "other"
     },
     "www.linkedin.com/in/r%C3%A9mi-h%C3%A9neault/": {
-        "title": "LinkedIn Profile",
-        "description": "Connect with me professionally and view my complete work history.",
+        "title": "LinkedIn",
+        "description": "Let's connect and have a chat!",
         "style": "other"
     }
 }
