@@ -1,0 +1,204 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f5f5f5;
+    overflow-x: hidden;
+    position: relative;
+}
+
+#pdf-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scroll-behavior: smooth;
+    padding-left: 350px;
+}
+
+.page-wrapper {
+    position: relative;
+    width: calc(100vw - 350px);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    scroll-snap-align: start;
+}
+
+.pdf-page {
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: white;
+    transition: transform 0.3s ease;
+}
+
+.pdf-page canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.link-overlay {
+    position: absolute;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.link-overlay:hover {
+    background-color: rgba(66, 133, 244, 0.1);
+}
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 350px;
+    height: 100vh;
+    background: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    padding: 40px 30px;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.sidebar h2 {
+    font-size: 24px;
+    margin-bottom: 30px;
+    color: #333;
+    font-weight: 600;
+}
+
+.link-preview {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.link-preview:hover {
+    background: #f0f4ff;
+    border-color: #4285f4;
+    transform: translateX(5px);
+}
+
+.link-preview.active {
+    background: #e8f0fe;
+    border-color: #1a73e8;
+}
+
+.link-preview h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+.link-preview p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Other/secondary link styles */
+.link-preview.other {
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #fcfcfc;
+    border-color: #efefef;
+}
+
+.link-preview.other:hover {
+    background: #f5f8ff;
+    border-color: #8ab4f8;
+    transform: translateX(3px);
+}
+
+.link-preview.other.active {
+    background: #f0f4ff;
+    border-color: #4285f4;
+}
+
+.link-preview.other h3 {
+    font-size: 12px;
+    margin-bottom: 6px;
+    color: #666;
+    font-weight: 600;
+}
+
+.link-preview.other p {
+    font-size: 10px;
+    color: #888;
+}
+
+.link-separator {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 30px 0;
+    width: 100%;
+}
+
+.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #666;
+    font-size: 18px;
+}
+
+.error-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #666;
+}
+
+.error-message h1 {
+    margin-bottom: 20px;
+    color: #999;
+}
+
+.error-message a {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 24px;
+    background-color: #4a4a4a;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.error-message a:hover {
+    background-color: #5a5a5a;
+}
+
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+@media (max-width: 1024px) {
+    .sidebar {
+        display: none;
+    }
+
+    #pdf-container {
+        padding-left: 0;
+    }
+
+    .page-wrapper {
+        width: 100vw;
+    }
+}
