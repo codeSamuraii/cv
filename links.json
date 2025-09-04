@@ -1,17 +1,24 @@
 {
     "transit.sh": {
         "title": "Transit.sh",
-        "description": "The file transfer service I built.",
+        "description": "My open-source file transfer service",
+        "tools": ["FastAPI", "Redis", "WebSockets"],
+        "style": "main"
+    },
+    "https://nbviewer.org/github/codeSamuraii/ml-experiments/blob/39b37a00b56449ca3d4ec42ced973b3b7664dd51/ImageEnhancementCNN.ipynb#res-id": {
+        "title": "Deblocking JPEG with CNNs",
+        "description": "Building and training an ML model",
+        "tools": ["Keras", "NumPy", "OpenCV"],
         "style": "main"
     },
     "github.com/codeSamuraii": {
         "title": "GitHub",
-        "description": "My personal projects and other open-source contributions.",
+        "description": "Other projects and open-source contributions",
         "style": "other"
     },
     "www.linkedin.com/in/r%C3%A9mi-h%C3%A9neault/": {
         "title": "LinkedIn",
-        "description": "Let's connect and have a chat!",
+        "description": "Let's connect!",
         "style": "other"
     }
 }

@@ -61,9 +61,16 @@ function createLinkPreview(key, info, container, isOther) {
     const url = key.startsWith('http') ? key : `https://${key}`;
     preview.dataset.url = url;
     
+    let toolsHtml = '';
+    if (info.tools && Array.isArray(info.tools)) {
+        const toolItems = info.tools.map(tool => `<span class="tool-item">${tool}</span>`).join('');
+        toolsHtml = `<div class="tools">${toolItems}</div>`;
+    }
+    
     preview.innerHTML = `
         <h3>${info.title}</h3>
         <p>${info.description}</p>
+        ${toolsHtml}
     `;
     
     preview.addEventListener('click', () => {
